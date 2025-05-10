@@ -103,6 +103,24 @@ public class EmployeeController {
         return Result.success();
     }
 
+    /*
+    根据Id查询员工
+     */
+    @GetMapping("/{id}")
+    public Result<Employee> selectById(@PathVariable Long id){
+        log.info("通过id{}查询员工",id);
+        Employee employee=employeeService.selectById(id);
+        return Result.success(employee);
+    }
 
+    /*
+    编辑员工信息
+     */
+    @PutMapping
+    public Result update(@RequestBody EmployeeDTO employeeDTO){
+        log.info("编辑员工信息:{}",employeeDTO);
+        employeeService.update(employeeDTO);
+        return Result.success();
+    }
 
 }
