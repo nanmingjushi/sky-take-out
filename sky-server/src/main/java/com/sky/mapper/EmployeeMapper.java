@@ -30,4 +30,7 @@ public interface EmployeeMapper {
     分页查询
      */
     Page<Employee> pageQuery(EmployeePageQueryDTO employeePageQueryDTO);
+
+    //更新员工信息
+    void update(Employee employee);
 }
