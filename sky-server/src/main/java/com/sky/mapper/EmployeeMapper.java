@@ -27,7 +27,7 @@ public interface EmployeeMapper {
 
 
     /*
-    分页查询
+    员工分页查询
      */
     Page<Employee> pageQuery(EmployeePageQueryDTO employeePageQueryDTO);
 

@@ -106,7 +106,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         return new PageResult(total,records);
     }
 
-    //启用禁用员工
+    // 启用/禁用员工
     @Override
     public void startOrStop(Integer status, Long id) {
         Employee employee=new Employee();
@@ -124,7 +124,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employeee;
     }
 
-    //编辑员工信息
+    //修改员工信息
     @Override
     public void update(EmployeeDTO employeeDTO) {
         Employee employee=new Employee();
