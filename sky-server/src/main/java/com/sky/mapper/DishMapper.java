@@ -5,6 +5,9 @@ package com.sky.mapper;
     @date 2025/5/13
 */
 
+import com.sky.annotation.AutoFill;
+import com.sky.entity.Dish;
+import com.sky.enumeration.OperationType;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
@@ -13,4 +16,8 @@ public interface DishMapper {
     //根据分类的category_id 查询菜品的数量
     @Select("select count(*) from dish where category_id=#{categoryId}")
     Integer countByCategoryId(Long categoryId);
+
+    //新增菜品
+    @AutoFill(value = OperationType.INSERT)
+    void insert(Dish dish);
 }
