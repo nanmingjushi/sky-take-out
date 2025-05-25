@@ -16,6 +16,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.springframework.web.bind.annotation.DeleteMapping;
 
+import java.util.List;
+
 @Mapper
 public interface DishMapper {
     //根据分类的category_id 查询菜品的数量
@@ -40,4 +42,14 @@ public interface DishMapper {
     //根据Id修改菜品
     @AutoFill(value = OperationType.UPDATE)
     void update(Dish dish);
+
+
+    //根据分类的Id来查询菜品
+    List<Dish> list(Dish dish);
+
+    //根据套餐id查询菜品
+    @Select("select dish.* from dish " +
+            "join setmeal_dish on dish.id=setmeal_dish.dish_id " +
+            "where setmeal_dish.setmeal_id=#{setmealId}")
+    List<Dish> getBySetmealId(Long setmealId);
 }
