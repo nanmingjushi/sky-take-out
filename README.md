@@ -1,1 +1,186 @@
 20250508 苍穹外卖-后端 个人学习自用
+
+nginx配置：
+
+nginx.conf 
+
+
+#user  nobody;
+worker_processes  1;
+
+#error_log  logs/error.log;
+#error_log  logs/error.log  notice;
+#error_log  logs/error.log  info;
+
+#pid        logs/nginx.pid;
+
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+    #                  '$status $body_bytes_sent "$http_referer" '
+    #                  '"$http_user_agent" "$http_x_forwarded_for"';
+
+    #access_log  logs/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    #keepalive_timeout  0;
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+    # 定义 $connection_upgrade 变量
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      close;
+    }
+
+
+    server {  # tlias项目 80端口号
+        listen       80;
+        server_name  localhost;
+        client_max_body_size 10m;
+
+        #charset koi8-r;
+
+        #access_log  logs/host.access.log  main;
+
+        location / {
+            root   /opt/homebrew/var/www/tlias;  #存放位置
+            index  index.html index.htm;
+            try_files $uri $uri/ /index.html;
+        }
+
+        location ^~ /api/ {
+            rewrite ^/api/(.*)$ /$1 break;
+            proxy_pass http://localhost:8080;
+        }
+
+        
+
+        #error_page  404              /404.html;
+
+        # redirect server error pages to the static page /50x.html
+        #
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+        # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+        #
+        #location ~ \.php$ {
+        #    proxy_pass   http://127.0.0.1;
+        #}
+
+        # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+        #
+        #location ~ \.php$ {
+        #    root           html;
+        #    fastcgi_pass   127.0.0.1:9000;
+        #    fastcgi_index  index.php;
+        #    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+        #    include        fastcgi_params;
+        #}
+
+        # deny access to .htaccess files, if Apache's document root
+        # concurs with nginx's one
+        #
+        #location ~ /\.ht {
+        #    deny  all;
+        #}
+    }
+
+
+
+    # 负载均衡 服务器
+    upstream webservers{
+	  server 127.0.0.1:8080 weight=90 ;  # 权重方式
+	  #server 127.0.0.1:8088 weight=10 ;
+	}
+
+    server{  #苍穹外卖 81端口号
+        listen       81;
+        server_name  localhost;
+        client_max_body_size 10m;
+
+        location / {
+            root   /opt/homebrew/var/www/sky; # 前端打包文件在nginx中的存放位置
+            index  index.html index.htm;
+        }
+
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+        # 反向代理,处理管理端发送的请求
+        location /api/ {
+            proxy_pass   http://webservers/admin/;
+        }
+        # 反向代理,处理用户端发送的请求
+        location /user/ {
+            proxy_pass   http://webservers/user/;
+        }
+
+        # 反向代理，微信服务器发送的请求
+        location /notify/ {
+            proxy_pass   http://webservers/notify/;
+        }
+
+        # WebSocket
+		location /ws/ {
+            proxy_pass   http://webservers/ws/;
+			proxy_http_version 1.1;
+			proxy_read_timeout 3600s;
+			proxy_set_header Upgrade $http_upgrade;
+			proxy_set_header Connection "$connection_upgrade";
+        }
+    }
+
+
+    # another virtual host using mix of IP-, name-, and port-based configuration
+    #
+    #server {
+    #    listen       8000;
+    #    listen       somename:8080;
+    #    server_name  somename  alias  another.alias;
+
+    #    location / {
+    #        root   html;
+    #        index  index.html index.htm;
+    #    }
+    #}
+
+
+    # HTTPS server
+    #
+    #server {
+    #    listen       443 ssl;
+    #    server_name  localhost;
+
+    #    ssl_certificate      cert.pem;
+    #    ssl_certificate_key  cert.key;
+
+    #    ssl_session_cache    shared:SSL:1m;
+    #    ssl_session_timeout  5m;
+
+    #    ssl_ciphers  HIGH:!aNULL:!MD5;
+    #    ssl_prefer_server_ciphers  on;
+
+    #    location / {
+    #        root   html;
+    #        index  index.html index.htm;
+    #    }
+    #}
+    include servers/*;
+}
