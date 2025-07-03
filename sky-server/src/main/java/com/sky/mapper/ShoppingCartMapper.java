@@ -32,4 +32,8 @@ public interface ShoppingCartMapper {
     //根据用户Id删除购物车
     @Delete("delete from shopping_cart where user_id=#{userId}")
     void deleteByUserId(Long userId);
+
+    //根据Id删除购物车
+    @Delete("delete from shopping_cart where id=#{id}")
+    void deleteById(Long id);
 }
