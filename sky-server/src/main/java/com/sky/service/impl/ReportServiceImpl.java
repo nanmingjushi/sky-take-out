@@ -7,8 +7,10 @@ package com.sky.service.impl;
 
 import com.sky.entity.Orders;
 import com.sky.mapper.OrderMapper;
+import com.sky.mapper.UserMapper;
 import com.sky.service.ReportService;
 import com.sky.vo.TurnoverReportVO;
+import com.sky.vo.UserReportVO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ public class ReportServiceImpl implements ReportService {
 
     @Autowired
     private OrderMapper orderMapper;
+    @Autowired
+    private UserMapper userMapper;
 
 
     //根据时间区间统计营业额
@@ -64,5 +68,48 @@ public class ReportServiceImpl implements ReportService {
         turnoverReportVO.setTurnoverList(StringUtils.join(turnoverList, ",")); //前端要的数据格式是用，隔开的
         return turnoverReportVO;
 
+    }
+
+
+    //根据时间区间统计用户数量
+    @Override
+    public UserReportVO getUserStatistic(LocalDate begin, LocalDate end) {
+        List<LocalDate> dateList = new ArrayList<>(); //时间列表
+        dateList.add(begin);
+
+        while (!begin.equals(end)) {
+            begin = begin.plusDays(1);
+            dateList.add(begin);
+        }
+
+        List<Integer> newUserList = new ArrayList<>(); //新用户数量 列表
+        List<Integer> totalUserList = new ArrayList<>(); //所有用户数量 列表
+
+        for (LocalDate date : dateList) {
+            LocalDateTime beginTime = LocalDateTime.of(date, LocalTime.MIN);
+            LocalDateTime endTime = LocalDateTime.of(date, LocalTime.MAX);
+
+            Integer newUser=getUserCount(beginTime,endTime);
+            Integer totalUser = getUserCount(null, endTime);
+
+            newUserList.add(newUser);
+            totalUserList.add(totalUser);
+
+        }
+
+        //数据封装
+        UserReportVO userReportVO=new UserReportVO();
+        userReportVO.setDateList(StringUtils.join(dateList,","));
+        userReportVO.setNewUserList(StringUtils.join(newUserList,","));
+        userReportVO.setTotalUserList(StringUtils.join(totalUserList,","));
+        return userReportVO;
+    }
+
+    //根据时间区间统计用户数量
+    private Integer getUserCount(LocalDateTime beginTime, LocalDateTime endTime) {
+        Map map = new HashMap();
+        map.put("begin",beginTime);
+        map.put("end", endTime);
+        return userMapper.countByMap(map);
     }
 }
