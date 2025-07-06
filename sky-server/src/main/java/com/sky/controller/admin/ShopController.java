@@ -25,6 +25,7 @@ public class ShopController {
 
 
 
+
     //设置店铺营业状态
     @PutMapping("/{status}")
     public Result setShopStatus(@PathVariable Integer status){
@@ -38,6 +39,14 @@ public class ShopController {
     @GetMapping("/status")
     public Result<Integer> getShopStatus(){
         Integer status = (Integer) redisTemplate.opsForValue().get(KEY);
+
+        // 处理null情况，设置默认状态
+        if (status == null) {
+            status = 1;  // 默认营业中
+            redisTemplate.opsForValue().set(KEY, status);  // 保存默认值到Redis
+            log.info("Redis中无店铺状态，已设置默认状态为：营业中");
+        }
+
         log.info("获取到店铺的营业状态是：{}",status==1?"营业中":"打烊中");
         return Result.success(status);
     }
